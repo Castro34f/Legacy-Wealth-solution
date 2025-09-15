@@ -6,9 +6,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # Firebase Admin SDK
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth, firestore
+import json  # <-- added for loading env var JSON
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    # Use environment variable on Render, fallback to local file
+    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON"):
+        service_account_info = json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+        cred = credentials.Certificate(service_account_info)
+    else:
+        cred = credentials.Certificate("serviceAccountKey.json")  # for local dev
     firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
