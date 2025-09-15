@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-dashboard">
+  <aside class="admin-sidebar">
+    <div class="sidebar-title">Admin Dashboard</div>
+    <nav>
+      <a href="{{ url_for('admin_users') }}">User Management</a>
+      <a class="active" href="{{ url_for('admin_transactions') }}">Transaction Management</a>
+      <a href="#">Deposit Management</a>
+      <a href="#">Withdrawal Management</a>
+      <a href="#">Referral & Rewards</a>
+      <a href="#">Notifications</a>
+      <a href="#">Activity Log</a>
+      <a href="#">Export Data</a>
+      <a href="#">Support Tickets</a>
+      <a href="#">Role Management</a>
+      <a href="#">Settings</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h2>Transaction Management</h2>
+    </div>
+    <div class="admin-table-container">
+      <table class="admin-table" id="transactionsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User Email</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in transactions %}
+          <tr>
+            <td>{{ tx.id }}</td>
+            <td>{{ tx.user_email }}</td>
+            <td>{{ tx.type }}</td>
+            <td>{{ tx.amount }}</td>
+            <td>
+              <select id="status-{{ tx.id }}">
+                <option value="Pending" {% if tx.status == "Pending" %}selected{% endif %}>Pending</option>
+                <option value="Completed" {% if tx.status == "Completed" %}selected{% endif %}>Completed</option>
+                <option value="Rejected" {% if tx.status == "Rejected" %}selected{% endif %}>Rejected</option>
+              </select>
+            </td>
+            <td>{{ tx.created_at }}</td>
+            <td>
+              <button onclick="updateTx({{ tx.id }})">Update</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script>
+function updateTx(id) {
+  const status = document.getElementById(`status-${id}`).value;
+  fetch(`/admin/update_transaction/${id}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({status})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert("Status updated!");
+      location.reload();
+    } else {
+      alert("Failed to update status.");
+    }
+  });
+}
+</script>
+{% endblock %}

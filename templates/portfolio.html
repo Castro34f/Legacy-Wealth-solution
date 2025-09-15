@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Portfolio — Moonvest{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h1 class="mb-1">My Portfolio</h1>
+  <div class="muted">Track your investments and performance</div>
+</section>
+
+<section class="grid two">
+  <!-- Distribution + total -->
+  <div class="card p-3">
+    <h3>Portfolio Distribution</h3>
+    <div style="max-width:420px;margin:10px auto 0;">
+      <canvas id="portfolioChart"></canvas>
+    </div>
+    <div class="muted center mt-2">Total Value: ${{ '%.2f'|format(data.total_value) }}</div>
+  </div>
+
+  <!-- Performance -->
+  <div class="card p-3">
+    <h3>Performance</h3>
+    <div class="stack mt-2">
+      <div><span class="muted">Total Gain/Loss</span><div class="kpi">
+        <span class="{{ 'green' if data.gain_loss>=0 else 'red' }}">
+          {{ '+' if data.gain_loss>=0 else '' }}${{ '%.2f'|format(data.gain_loss) }}
+        </span>
+      </div></div>
+      <div><span class="muted">ROI</span><div class="kpi">
+        <span class="{{ 'green' if data.roi>=0 else 'red' }}">
+          {{ '+' if data.roi>=0 else '' }}{{ '%.2f'|format(data.roi) }}%
+        </span>
+      </div></div>
+      <div><span class="muted">Best Performer</span><div class="kpi">{{ data.best_performer if data.get('best_performer') else '' }}</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Holdings -->
+<section class="card p-3 mt-3">
+  <h3>Investment Holdings</h3>
+  <div class="list mt-2">
+    {% for h in data.holdings %}
+    <div class="row between list-row">
+      <div>
+        <strong>{{ h.name }}</strong>
+        <div class="muted tiny">${{ '%.2f'|format(h.deposited) }}</div>
+      </div>
+      <div class="{{ 'green' if h.change>=0 else 'red' }}">
+        {{ '+' if h.change>=0 else '' }}${{ '%.2f'|format(h.change) }}
+        <span class="muted small">({{ h.pct }})</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Chart.js (for the donut) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const dist = {{ data.distribution|tojson }};
+  const labels = dist.map(d => d.label);
+  const values = dist.map(d => d.percent);
+
+  const ctx = document.getElementById('portfolioChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed}%` } }
+      }
+    }
+  });
+</script>
+{% endblock %}

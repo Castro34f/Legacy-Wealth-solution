@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth">
+  <h2 class="section-title">Welcome back</h2>
+
+  <form id="loginForm" class="form card shadow">
+    <label>
+      <span>Email</span>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required>
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input type="password" id="password" name="password" placeholder="Enter your password" required>
+    </label>
+
+    <div id="loginError" class="pill danger" style="text-align:center; display:none;"></div>
+
+    <button type="submit" class="btn solid glow">Login</button>
+  </form>
+
+  <p class="small muted" style="margin-top:16px;text-align:center;">
+    Don’t have an account?
+    <a href="{{ url_for('signup') }}">Sign up</a>
+  </p>
+</div>
+
+<script>
+  document.getElementById('loginForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.style.display = "none";
+    errorDiv.textContent = "";
+
+    try {
+      const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+
+      if (!userCredential.user.emailVerified) {
+        await firebase.auth().signOut();
+        errorDiv.textContent = "Please verify your email before logging in.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      // Get Firebase ID token
+      const token = await userCredential.user.getIdToken();
+
+      // Send token to Flask
+      const res = await fetch("/sessionLogin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: token })
+      });
+
+      const data = await res.json();
+      if (data.status === "success") {
+        window.location.href = data.redirect;
+      } else {
+        throw new Error(data.message || "Login failed");
+      }
+    } catch (err) {
+      errorDiv.textContent = err.message;
+      errorDiv.style.display = "block";
+    }
+  };
+</script>
+{% endblock %}

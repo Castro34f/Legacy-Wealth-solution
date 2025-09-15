@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-dashboard">
+  <aside class="admin-sidebar">
+    <div class="sidebar-title">Admin Dashboard</div>
+    <nav>
+      <a class="active" href="{{ url_for('admin_users') }}">User Management</a>
+      <a href="{{ url_for('admin_transactions') }}">Transaction Management</a>
+      <a href="#">Deposit Management</a>
+      <a href="#">Withdrawal Management</a>
+      <a href="#">Referral & Rewards</a>
+      <a href="#">Notifications</a>
+      <a href="#">Activity Log</a>
+      <a href="#">Export Data</a>
+      <a href="#">Support Tickets</a>
+      <a href="#">Role Management</a>
+      <a href="#">Settings</a>
+    </nav>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-header">
+      <h2>User Management</h2>
+      <!-- You can implement Add User modal with Flask if needed -->
+    </div>
+    <div class="admin-table-container">
+      <table class="admin-table" id="usersTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Balance</th>
+            <th>Portfolio Growth</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <input type="number" value="{{ user.balance or 0 }}" id="balance-{{ user.email }}">
+              <button onclick="editBalance('{{ user.email }}')">Save</button>
+            </td>
+            <td>
+              <input type="number" value="{{ user.portfolio_growth or 0 }}" id="growth-{{ user.email }}">
+              <button onclick="editPortfolio('{{ user.email }}')">Save</button>
+            </td>
+            <td>
+              <button onclick="deleteUser('{{ user.email }}')">Delete</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+function deleteUser(email) {
+  if (!confirm("Are you sure you want to delete this user?")) return;
+  fetch(`/admin/delete_user/${email}`, {method: "POST"})
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("User deleted!");
+        location.reload();
+      } else {
+        alert("Failed to delete user.");
+      }
+    });
+}
+
+function editBalance(email) {
+  const balance = document.getElementById(`balance-${email}`).value;
+  fetch(`/admin/edit_balance/${email}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({balance})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert("Balance updated!");
+      location.reload();
+    } else {
+      alert("Failed to update balance.");
+    }
+  });
+}
+
+function editPortfolio(email) {
+  const growth = document.getElementById(`growth-${email}`).value;
+  fetch(`/admin/edit_portfolio/${email}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({growth})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert("Portfolio growth updated!");
+      location.reload();
+    } else {
+      alert("Failed to update portfolio growth.");
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Transactions — Moonvest{% endblock %}
+{% block content %}
+<section class="dash-head">
+  <h1>Transactions</h1>
+  <div class="filter-row">
+    <button class="pill small active" type="button">All</button>
+    <button class="pill small" type="button">Deposits</button>
+    <button class="pill small" type="button">Withdrawals</button>
+    <button class="pill small" type="button">Trades</button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="table">
+    <div class="tr head"><div>Asset</div><div>Date</div><div>Amount</div><div>Kind</div><div>Status</div></div>
+    {% for t in tx %}
+    <div class="tr">
+      <div>{{ t.asset }}</div>
+      <div class="muted">{{ t.date }}</div>
+      <div>${{ '%.2f'|format(t.amount) }}</div>
+      <div>{{ t.kind }}</div>
+      <div><span class="pill {{ 'success' if t.status=='success' else 'danger' }}">{{ t.status }}</span></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

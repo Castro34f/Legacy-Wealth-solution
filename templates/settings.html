@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth">
+  <h2 class="section-title">Settings & Profile</h2>
+  <div class="profile-card card shadow">
+    <div class="profile-header">
+      <div class="profile-avatar">JD</div>
+      <div>
+        <div class="profile-name">John Doe</div>
+        <div class="profile-email">john.doe@example.com</div>
+        </div>
+    </div>
+    <div class="profile-details">
+      <div><strong>Full Name</strong><br>John Doe</div>
+      <div><strong>Email Address</strong><br>john.doe@example.com</div>
+    </div>
+  </div>
+
+  <div class="card shadow" style="margin-top:32px;">
+    <h3>Deposit Addresses</h3>
+    <label>
+      <span>BTC (default network)</span>
+      <input type="text" value="bc1q9xzgwk7k7xzannluggc9dwer2x8acahy8yfp3f" readonly>
+    </label>
+    <label>
+      <span>ETH (ERC network)</span>
+      <input type="text" value="0x067187228198d9680B9Fcdd1cE5a8e6A98158a3f" readonly>
+    </label>
+    <label>
+      <span>TRC20</span>
+      <input type="text" value="TCHJQxjDBgsgTkTWXb644Wmzr8UTvzgMvf" readonly>
+    </label>
+  </div>
+
+  <form id="withdrawalForm" class="card shadow" style="margin-top:32px;">
+    <h3>Withdrawal Details</h3>
+    <label>
+      <span>Skrill Email Address</span>
+      <input type="email" id="skrillEmail" placeholder="your@email.com">
+    </label>
+    <label>
+      <span>Neteller Email Address</span>
+      <input type="email" id="netellerEmail" placeholder="your@email.com">
+    </label>
+    <label>
+      <span>USDT TRC20 Withdrawal Address</span>
+      <input type="text" id="usdtAddress" placeholder="TRC20 address">
+    </label>
+    <button class="btn solid glow" type="submit" style="margin-top:24px;">Save Changes</button>
+  </form>
+
+  <div class="card shadow" style="margin-top:32px;">
+    <h3>Preferences</h3>
+    <label>
+      <span>Push Notifications</span>
+      <input type="checkbox" checked>
+    </label>
+    <label>
+      <span>Marketing Emails</span>
+      <input type="checkbox">
+    </label>
+  </div>
+</div>
+
+<!-- Payment Plan Modal -->
+<div id="paymentModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <button class="modal-close" onclick="document.getElementById('paymentModal').style.display='none'">&times;</button>
+    <h3>Choose a Payment Plan</h3>
+    <p>Select a plan to verify your account:</p>
+    <ul>
+      <li><strong>Basic:</strong> $10/month</li>
+      <li><strong>Premium:</strong> $25/month</li>
+      <li><strong>Pro:</strong> $50/month</li>
+    </ul>
+    <button class="btn solid glow">Proceed to Payment</button>
+  </div>
+</div>
+
+<script>
+  // Payment modal
+  document.getElementById('verifyBtn').onclick = function() {
+    document.getElementById('paymentModal').style.display = 'flex';
+  };
+
+  // Save withdrawal addresses to Firestore
+  document.getElementById('withdrawalForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      alert("You must be logged in.");
+      return;
+    }
+    const data = {
+      skrillEmail: document.getElementById('skrillEmail').value,
+      netellerEmail: document.getElementById('netellerEmail').value,
+      usdtAddress: document.getElementById('usdtAddress').value,
+      updatedAt: new Date().toISOString()
+    };
+    await firebase.firestore().collection('withdrawal_addresses').doc(user.uid).set(data);
+    alert("Withdrawal addresses saved!");
+  };
+
+  // Pre-fill withdrawal addresses if they exist
+  firebase.auth().onAuthStateChanged(async function(user) {
+    if (user) {
+      const doc = await firebase.firestore().collection('withdrawal_addresses').doc(user.uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById('skrillEmail').value = data.skrillEmail || '';
+        document.getElementById('netellerEmail').value = data.netellerEmail || '';
+        document.getElementById('usdtAddress').value = data.usdtAddress || '';
+      }
+    }
+  });
+</script>
+
+<script>
+firebase.auth().onAuthStateChanged(async function(user) {
+  if (user) {
+    const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+    let verified = false;
+    if (doc.exists && doc.data().isVerified) {
+      verified = true;
+    }
+    // Update UI
+    const statusEl = document.querySelector('.profile-status');
+    if (verified) {
+      statusEl.classList.remove('unverified');
+      statusEl.classList.add('verified');
+      statusEl.innerHTML = '<span style="color:#2eea8b;font-weight:bold;">&#10003; Verified</span>';
+    } else {
+      statusEl.classList.remove('verified');
+      statusEl.classList.add('unverified');
+      statusEl.innerHTML = '<span style="color:#e6b800;font-weight:bold;">&#9888; Unverified</span> <button class="btn solid glow" id="verifyBtn">Verify Account</button>';
+      document.getElementById('verifyBtn').onclick = function() {
+        document.getElementById('paymentModal').style.display = 'flex';
+      };
+    }
+  }
+});
+</script>
+{% endblock %}

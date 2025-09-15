@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ BRAND }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<a class="brand dark" href="{{ url_for('index') }}" style="display:flex;align-items:center;gap:12px;">
+  <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Moonvest Logo" style="height:40px;vertical-align:middle;">
+  <span class="brand-text" style="font-size:1.2em;font-weight:700;color:#fff;">{{ BRAND }}</span>
+</a>
+      <button class="nav-toggle" onclick="menu.classList.toggle('open')">☰</button>
+
+      <div id="menu" class="menu dark">
+        <a class="menu-link{% if request.endpoint=='index' %} active{% endif %}" href="{{ url_for('index') }}">Home</a>
+        <a class="menu-link{% if request.endpoint=='dashboard' %} active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a class="menu-link{% if request.endpoint=='portfolio' %} active{% endif %}" href="{{ url_for('portfolio') }}">Portfolio</a>
+        <a class="menu-link{% if request.endpoint=='transactions' %} active{% endif %}" href="{{ url_for('transactions') }}">Transactions</a>
+        <a class="menu-link{% if request.endpoint=='settings' %} active{% endif %}" href="{{ url_for('settings') }}">Settings</a>
+        <a class="menu-link{% if request.endpoint=='support' %} active{% endif %}" href="{{ url_for('support') }}">Support</a>
+        <a class="menu-link{% if request.endpoint=='about' %} active{% endif %}" href="{{ url_for('about') }}">About</a>
+
+        {% if USER %}
+          <span class="menu-link">Hi, {{ USER.name }}</span>
+          <a class="btn outline" href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+          <a class="menu-link" href="{{ url_for('login') }}">Login</a>
+          <a class="btn solid glow" href="{{ url_for('signup') }}">Sign Up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="footer dark">
+    <div class="container footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">★</div>
+        <div>
+          <div class="strong">{{ BRAND }}</div>
+          <div class="muted small">invest With Confidence. Build Generational Wealth.</div>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Policy</a>
+        <a href="#">Terms & Conditions</a>
+        <a href="{{ url_for('support') }}">Support</a>
+        <a href="#">Referral Program</a>
+      </div>
+    </div>
+    <div class="container muted small">&copy; {{ 2025 }} {{ BRAND }}. All rights reserved.</div>
+  </footer>
+
+  <script>const menu = document.getElementById('menu');</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+  <!-- Firebase JS SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_yLTLxHQVx8taPyYu0aefPy6Pyf0m4N4",
+      authDomain: "leagacywealth-ea5db.firebaseapp.com",
+      projectId: "leagacywealth-ea5db",
+      storageBucket: "leagacywealth-ea5db.firebasestorage.app",
+      messagingSenderId: "644807411844",
+      appId: "1:644807411844:web:6aef9323252ca047d51ad1",
+      measurementId: "G-1D1YYXSKZ5"
+    };
+   firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  </script>
+
+  <!--Start of Tawk.to Script-->
+  <script type="text/javascript">
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/68aa72084ebc491927e10011/1j3csqsmk';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
+  <!--End of Tawk.to Script-->
+</body>
+</html>

@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Moonvest{% endblock %}
+{% block content %}
+
+<section class="dash-head welcome-row">
+  <div class="avatar xl">JD</div>
+  <div>
+    <h1>Welcome back, {{ session.user.name if session.get('user') and session.user.name else USER.name }}</h1>
+    <div class="muted">Here's your investment overview</div>
+  </div>
+  <div class="membership pill success">★ Premium Member</div>
+</section>
+
+<section class="grid two">
+  <div class="card kpi big">
+    <div class="kpi-row">
+      <div>
+        <div class="muted">Total Portfolio Value</div>
+        <div class="huge">${{ '%.2f'|format(kpis.portfolio_value) }}</div>
+        <div class="muted tiny"><span class="green">↗ +{{ '%.1f'|format(kpis.portfolio_change_pct) }}% (${{ '%.0f'|format(kpis.portfolio_change_value) }})</span> this month</div>
+      </div>
+      <div class="right">
+        <div class="muted">Available Balance</div>
+        <div class="num">${{ '%.2f'|format(kpis.available_balance) }}</div>
+      </div>
+    </div>
+  </div>
+
+<div class="card quick-actions">
+  <h3>Quick Actions</h3>
+  <button class="qa-btn add" onclick="document.getElementById('depositModal').style.display='flex'">＋ Deposit Funds</button>
+  {% if has_deposited %}
+ <button class="qa-btn" onclick="document.getElementById('withdrawModal').style.display='flex'">⎯ Withdraw</button>
+{% endif %}
+  <a class="qa-btn link" href="{{ url_for('transactions') }}">☷ Transactions</a>
+</div>
+
+<!-- Deposit Modal -->
+<div id="depositModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('depositModal').style.display='none'">&times;</span>
+    <div class="plans-grid">
+      <!-- Entry Plan -->
+      <div class="plan-card">
+        <h4>Entry Plan</h4>
+        <div class="plan-price">$50<br><span>24hrs</span></div>
+        <div class="plan-returns">Total Returns<br><strong>$199</strong><br><span>+199% ROI</span></div>
+        <ul>
+          <li>24/7 Customer Support</li>
+          <li>Basic Portfolio Tracking</li>
+          <li>Weekly Reports</li>
+        </ul>
+        <button class="plan-btn">Invest Now</button>
+      </div>
+      <!-- Premium Plan -->
+      <div class="plan-card">
+        <h4>Premium Plan</h4>
+        <div class="plan-price">$500<br><span>24hrs</span></div>
+        <div class="plan-returns">Total Returns<br><strong>$1,495</strong><br><span>+199% ROI</span></div>
+        <ul>
+          <li>Priority Customer Support</li>
+          <li>Advanced Analytics</li>
+          <li>Daily Reports</li>
+          <li>Risk Management Tools</li>
+        </ul>
+        <button class="plan-btn">Invest Now</button>
+      </div>
+      <!-- Expert Plan -->
+      <div class="plan-card">
+        <h4>Expert Plan</h4>
+        <div class="plan-price">$1,000<br><span>24hrs</span></div>
+        <div class="plan-returns">Total Returns<br><strong>$2,990</strong><br><span>+199% ROI</span></div>
+        <ul>
+          <li>Dedicated Account Manager</li>
+          <li>Professional Analytics</li>
+          <li>Real-time Notifications</li>
+          <li>Advanced Risk Management</li>
+          <li>Market Insights</li>
+        </ul>
+        <button class="plan-btn">Invest Now</button>
+      </div>
+      <!-- Prime Plan -->
+      <div class="plan-card">
+        <h4>Prime Plan</h4>
+        <div class="plan-price">$5,000<br><span>24hrs</span></div>
+        <div class="plan-returns">Total Returns<br><strong>$7,475</strong><br><span>+50% ROI</span></div>
+        <ul>
+          <li>VIP Account Manager</li>
+          <li>Institutional-grade Tools</li>
+          <li>Custom Strategies</li>
+          <li>Priority Withdrawals</li>
+          <li>Exclusive Market Research</li>
+          <li>Tax Optimization</li>
+        </ul>
+        <button class="plan-btn">Invest Now</button>
+        </div>
+      <!-- Ultimate Plan -->
+      <div class="plan-card">
+        <h4>Ultimate Plan</h4>
+        <div class="plan-price">$10,000<br><span>24hrs</span></div>
+        <div class="plan-returns">Total Returns<br><strong>$14,950</strong><br><span>+50% ROI</span></div>
+        <ul>
+          <li>Elite Support Team</li>
+          <li>Personalized Investment Strategy</li>
+          <li>Direct Market Access</li>
+          <li>Instant Withdrawals</li>
+          <li>Exclusive Investment Opportunities</li>
+          <li>Personal Financial Advisor</li>
+          <li>Quarterly Strategy Reviews</li>
+        </ul>
+        <button class="plan-btn">Invest Now</button>
+       </div>
+    </div>
+  </div>
+</div>
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('paymentModal').style.display='none'">&times;</span>
+    <h3>Send Payment</h3>
+    <div class="crypto-addresses">
+      <div>
+        <strong>BTC Address:</strong>
+        <div class="address">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</div>
+      </div>
+      <div>
+        <strong>ETH Address:</strong>
+        <div class="address">0x742d35Cc6634C0532925a3b844Bc454e4438f44e</div>
+      </div>
+      <div>
+        <strong>USDT (TRC20) Address:</strong>
+        <div class="address">TQ2VtGv7Qw8vQw8vQw8vQw8vQw8vQw8vQw8vQw8v</div>
+      </div>
+    </div>
+    <p style="margin-top:16px;">Copy the address and send your payment. After payment, contact support or upload your proof.</p>
+  </div>
+</div>
+
+<section class="grid two">
+  <div class="card">
+    <div class="chart-header">
+      <div>
+        <strong>Live Prices</strong>
+        <div class="muted tiny"></div>
+      </div>
+      <div class="tabs">
+        {% for t in tickers %}
+          <button class="tab-btn" data-ticker="{{ t }}">{{ t }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    <canvas id="liveChart"></canvas>
+    <div class="muted tiny" id="chartStatus" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="card info">
+    <h3>Tips</h3>
+    <p class="muted">Switch tickers above to change the feed. We fetch new data every 5 seconds.</p>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Recent Activity</h3>
+  <div class="activity-list">
+    {% for t in activity %}
+    <div class="activity-row">
+      <div class="activity-left">
+        <div class="activity-icon">{{ '+' if t.icon in ['+', '💸'] else '•' }}</div>
+        <div>
+          <strong>{{ t.title }}</strong>
+          <div class="muted tiny">{{ t.time }}</div>
+        </div>
+      </div>
+      <div class="activity-right {{ 'green' if t.amount >=0 else 'red' }}">
+        {{ '+' if t.amount>=0 else '' }}${{ '%.0f'|format(t.amount|abs) }}
+        <span class="muted small">{{ t.status }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Firebase Auth Verification (Client-Side Gatekeeper) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    // ... any other keys needed
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "/login";
+    }
+  });
+</script>
+
+<!-- Chart + Ticker Init -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.initAPILiveChart) {
+      const defaultTicker = document.querySelector('.tab-btn')?.dataset.ticker || 'BTC';
+      window.initAPILiveChart('liveChart', defaultTicker);
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          window.switchAPITicker(btn.dataset.ticker);
+        });
+      });
+      const first = document.querySelector('.tab-btn');
+      if (first) first.classList.add('active');
+    }
+  });
+</script>
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('withdrawModal').style.display='none'">&times;</span>
+    <h3>Withdraw Funds</h3>
+    {% if has_deposited %}
+      <!-- Withdrawal form for users who have deposited -->
+      <form id="withdrawForm">
+        <label>
+          <span>Select Withdrawal Method:</span>
+          <select id="withdrawMethod" required>
+            <option value="">Choose...</option>
+            <option value="skrill">Skrill</option>
+            <option value="neteller">Neteller</option>
+            <option value="eth">ETH</option>
+            <option value="usdt">USDT (TRC20)</option>
+          </select>
+        </label>
+        <label>
+          <span>Amount:</span>
+          <input type="number" id="withdrawAmount" min="1" required>
+        </label>
+        <button type="submit" class="btn solid glow">Request Withdrawal</button>
+      </form>
+      <div id="withdrawMsg" style="margin-top:16px; display:none;">
+        Your withdrawal request has been received.<br>
+        Please <a href="{{ url_for('support') }}">contact support</a> to complete your withdrawal.
+      </div>
+    {% else %}
+      <!-- Message for users who have not deposited -->
+      <div style="margin:24px 0; text-align:center;">
+        <strong>You cannot withdraw yet.</strong><br>
+        Please <a href="#" onclick="document.getElementById('depositModal').style.display='flex';document.getElementById('withdrawModal').style.display='none';return false;">go to Deposit</a> and select a subscription plan.
+      </div>
+    {% endif %}
+  </div>
+</div>
+<script>
+  // Show payment modal when any "Invest Now" button is clicked
+  document.querySelectorAll('.plan-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      document.getElementById('paymentModal').style.display = 'flex';
+    };
+  });
+</script>
+<script>
+document.getElementById('withdrawForm').onsubmit = function(e) {
+  e.preventDefault();
+  // Optionally, check if user has deposited before allowing withdrawal
+  // You can add a check here using a variable from Flask, e.g. {{ has_deposited|tojson }}
+  document.getElementById('withdrawForm').style.display = 'none';
+  document.getElementById('withdrawMsg').style.display = 'block';
+};
+</script>
+{% endblock %}

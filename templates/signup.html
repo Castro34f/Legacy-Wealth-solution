@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth">
+  <h2 class="section-title">Create an account</h2>
+
+  <form id="signupForm" class="form card shadow" action="{{ url_for('signup') }}" method="POST">
+    <label>
+      <span>Full Name</span>
+      <input type="text" id="name" name="name" placeholder="John Doe" required>
+    </label>
+    <label>
+      <span>Email</span>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required>
+    </label>
+    <label>
+      <span>Password</span>
+      <input type="password" id="password" name="password" placeholder="Enter password" required>
+    </label>
+    <label>
+      <span>Confirm Password</span>
+      <input type="password" id="confirm" name="confirm" placeholder="Re-enter password" required>
+    </label>
+    <div id="signupError" class="pill danger" style="text-align:center; display:none;"></div>
+    <button type="submit" class="btn solid glow">Sign Up</button>
+</form>
+
+  <p class="small muted" style="margin-top:16px;text-align:center;">
+    Already have an account?
+    <a href="{{ url_for('login') }}">Login</a>
+  </p>
+</div>
+
+<!-- Email Verification Modal -->
+<div id="verifyModal" class="verify-modal" style="display:none;">
+  <div class="verify-modal-content">
+    <button class="verify-modal-close" onclick="document.getElementById('verifyModal').style.display='none'">&times;</button>
+    <div class="verify-modal-icon">
+      <span style="font-size:2.5em; color:#e6b800;">&#9993;</span>
+    </div>
+    <h3>Verify Your Email</h3>
+    <div class="verify-modal-desc">
+      We've sent a verification link to:<br>
+      <strong id="verifyEmail"></strong>
+    </div>
+    <div class="verify-modal-instruct">
+      Please check your inbox and click the link to verify your email address.
+    </div>
+    <button class="btn solid" id="resendLinkBtn" style="margin-top:18px;">Resend Email</button>
+    <div class="verify-modal-note">
+      <span style="color:#e6b800;">Note:</span> Check your spam folder if you don't see the email.<br>
+      The verification link expires in 10 minutes.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

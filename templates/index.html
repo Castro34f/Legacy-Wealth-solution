@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Moonvest — Invest With Confidence. Build Generational Wealth.{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1 class="hero-title">Invest With Confidence.<br><span class="gold">Build Generational Wealth.</span></h1>
+  <p class="hero-sub">Build your wealth with intelligent strategies designed for long-term growth and financial security.</p>
+  <div class="hero-ctas">
+    <a class="btn solid" href="{{ url_for('signup') }}">Get Started</a>
+    <a class="btn ghost" href="{{ url_for('login') }}">Learn More</a>
+  </div>
+</section>
+
+<section class="features">
+  <h2 class="section-title">Why Choose <span class="gold">Our Platform</span></h2>
+  <div class="grid">
+    <div class="card feature">
+      <div class="icon gold">🔒</div>
+      <h3>Secure Platform</h3>
+      <p class="muted">Bank-level encryption to protect your investments and personal data.</p>
+    </div>
+    <div class="card feature">
+      <div class="icon gold">👨‍🏫</div>
+      <h3>Expert Guidance</h3>
+      <p class="muted">Professional insights to help you make informed investment decisions.</p>
+    </div>
+    <div class="card feature">
+      <div class="icon gold">⏰</div>
+      <h3>24/7 Support</h3>
+      <p class="muted">Round-the-clock customer support whenever you need help.</p>
+    </div>
+  </div>
+</section>
+
+<section class="tracking">
+  <div class="tracking-copy">
+    <h2>Track your portfolio <span class="gold">in real time</span></h2>
+    <p class="muted">Monitor your investments with advanced analytics and real-time market data. Make informed decisions with our comprehensive tools.</p>
+    <ul class="bullets">
+      <li>Real-time updates</li>
+      <li>Advanced analytics</li>
+    </ul>
+  </div>
+  <div class="tracking-card card">
+    <div class="tracking-header">
+      <strong>Portfolio</strong>
+      <span class="pill success">+12.5%</span>
+    </div>
+    <div class="mini-chart">
+      <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#2eea8b" stroke-width="3"
+          points="0,65 20,60 40,62 60,50 80,45 100,48 120,40 140,35 160,30 180,20 200,25"/>
+      </svg>
+    </div>
+    <div class="tracking-stats">
+      <div>
+        <div class="muted">Total Value</div>
+        <div class="num">$24,567</div>
+      </div>
+      <div class="right">
+        <div class="muted">Today's Gain</div>
+        <div class="num green">+$342</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <h2 class="section-title">Trusted by <span class="gold">Thousands</span></h2>
+  <div class="grid">
+    <div class="card">
+      <p class="quote">“The platform’s intuitive interface and expert guidance helped me grow my portfolio by 35% in one year.”</p>
+      <div class="avatar-row"><div class="avatar">SJ</div><div><strong>Sarah Johnson</strong><div class="muted">Portfolio Manager</div></div></div>
+    </div>
+    <div class="card">
+      <p class="quote">“Real-time analytics and secure transactions make this perfect for serious investors.”</p>
+      <div class="avatar-row"><div class="avatar">MC</div><div><strong>Michael Chen</strong><div class="muted">Entrepreneur</div></div></div>
+    </div>
+    <div class="card">
+      <p class="quote">“24/7 support and professional advice have been game-changers for my strategy.”</p>
+      <div class="avatar-row"><div class="avatar">ER</div><div><strong>Emily Rodriguez</strong><div class="muted">Financial Analyst</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="faq">
+  <h2 class="section-title">Frequently Asked <span class="gold">Questions</span></h2>
+  <div class="faq-list">
+    {% for f in faqs %}
+    <details class="faq-item card">
+      <summary>{{ f.q }}</summary>
+      <p class="muted">{{ f.a }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
