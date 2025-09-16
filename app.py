@@ -9,46 +9,22 @@ from firebase_admin import credentials, auth as firebase_auth, firestore
 import os
 import json
 
+# ---------- Secure Firebase Init ----------
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
-    firebase_admin.initialize_app(cred)
+    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"):
+        firebase_creds = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
+        cred = credentials.Certificate(firebase_creds)
+        firebase_admin.initialize_app(cred)
+    else:
+        # Fallback for local dev (using serviceAccountKey.json)
+        cred = credentials.Certificate("serviceAccountKey.json")
+        firebase_admin.initialize_app(cred)
+# ------------------------------------------
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 DB_PATH = os.path.join(os.path.dirname(__file__), "moonvest.db")
 
-# ---------- Transactions DB (optional, for transactions only) ----------
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    conn = get_db()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_email TEXT,
-            type TEXT,
-            amount REAL,
-            status TEXT,
-            created_at TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
-init_db()
-
-def add_transaction(user_email, tx_type, amount, status="Completed"):
-    conn = get_db()
-    conn.execute(
-        "INSERT INTO transactions (user_email, type, amount, status, created_at) VALUES (?, ?, ?, ?, ?)",
-        (user_email, tx_type, amount, status, dt.datetime.utcnow().isoformat())
-    )
-    conn.commit()
-    conn.close()
-
-# ---------- Globals ----------
 @app.context_processor
 def inject_globals():
     return dict(USER=session.get("user"), BRAND="Legacy Wealth Solution")
