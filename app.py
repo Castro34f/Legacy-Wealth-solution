@@ -6,15 +6,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # Firebase Admin SDK
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth, firestore
-import json  # <-- added for loading env var JSON
+import os
+import json
 
 if not firebase_admin._apps:
-    # Use environment variable on Render, fallback to local file
-    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON"):
-        service_account_info = json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-        cred = credentials.Certificate(service_account_info)
-    else:
-        cred = credentials.Certificate("serviceAccountKey.json")  # for local dev
+    cred = credentials.Certificate("serviceAccountKey.json")
     firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
@@ -42,6 +38,15 @@ def init_db():
     conn.commit()
     conn.close()
 init_db()
+
+def add_transaction(user_email, tx_type, amount, status="Completed"):
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO transactions (user_email, type, amount, status, created_at) VALUES (?, ?, ?, ?, ?)",
+        (user_email, tx_type, amount, status, dt.datetime.utcnow().isoformat())
+    )
+    conn.commit()
+    conn.close()
 
 # ---------- Globals ----------
 @app.context_processor
@@ -178,13 +183,35 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    print("Dashboard route started")  # Step 1
     user_email = session["user"]["email"]
     db = firestore.client()
+    print("Firestore client created")  # Step 2
     user_doc = db.collection('users').document(user_email).get()
+    print("User doc fetched")          # Step 3
     user_data = user_doc.to_dict() if user_doc.exists else {}
+    print("User data processed")       # Step 4
+
     balance = user_data.get("balance", 0)
     portfolio_growth = user_data.get("portfolio_growth", 0)
     has_deposited = balance > 0
+
+    # Get recent transactions from SQLite
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT type, amount, status, created_at FROM transactions WHERE user_email=? ORDER BY created_at DESC LIMIT 5",
+        (user_email,)
+    ).fetchall()
+    conn.close()
+    activity = []
+    for row in rows:
+        activity.append({
+            "icon": "+" if row["type"] == "Deposit" else "–" if row["type"] == "Withdrawal" else "→",
+            "title": row["type"],
+            "time": row["created_at"],
+            "amount": row["amount"],
+            "status": row["status"]
+        })
 
     kpis = {
         "portfolio_value": balance,
@@ -195,39 +222,33 @@ def dashboard():
         "portfolio_change_value": 0
     }
     tickers = ["BTC", "AAPL", "VNQ", "TSLA", "SPY"]
-    activity = [
-        {"icon": "+", "title": "Deposit",    "time": "2 hours ago", "amount": 1000, "status": "Completed"},
-        {"icon": "→", "title": "Investment", "time": "1 day ago",   "amount":  500, "status": "Completed"},
-        {"icon": "–", "title": "Withdrawal", "time": "3 days ago",  "amount":  200, "status": "Pending"},
-        {"icon": "💸","title": "Dividend",   "time": "1 week ago",  "amount":   45, "status": "Completed"},
-    ]
-    return render_template("dashboard.html", kpis=kpis, tickers=tickers, activity=activity, has_deposited=has_deposited)
+    print("Rendering dashboard")       # Step 5
+    return render_template("dashboard.html", kpis=kpis, tickers=tickers, activity=activity, has_deposited=has_deposited, balance=balance)
+
 
 @app.route("/portfolio")
 @login_required
 def portfolio():
+    user_email = session["user"]["email"]
+    db = firestore.client()
+    user_doc = db.collection('users').document(user_email).get()
+    user_data = user_doc.to_dict() if user_doc.exists else {}
+
     data = {
-        "total_deposited": 20000,
-        "current_value": 22885,
-        "total_profit": 2885,
-        "roi": 14.4,
-        "distribution": [
-            {"label": "Stocks", "percent": 65, "color": "#6aa5ff"},
-            {"label": "ETFs",   "percent": 25, "color": "#6cd9a7"},
-            {"label": "Crypto", "percent": 10, "color": "#b28bff"},
-        ],
-        "bars": {"deposited": 20000, "current": 22885},
-        "holdings": [
-            {"name":"Apple Inc. (AAPL)", "deposited":5000, "change":  750, "pct":"+15%"},
-            {"name":"Tesla Inc. (TSLA)", "deposited":3000, "change": -200, "pct":"-6.67%"},
-            {"name":"Bitcoin ETF",       "deposited":4000, "change": 1200, "pct":"+30%"},
-            {"name":"S&P 500 Index",     "deposited":6000, "change":  720, "pct":"+12%"},
-            {"name":"Real Estate Fund",  "deposited":2000, "change": -415, "pct":"-20.75%"},
-        ]
-    }
-    data["total_value"]   = data["current_value"]
-    data["gain_loss"]     = data["total_profit"]
-    data["gain_loss_pct"] = data["roi"]
+    "total_deposited": user_data.get("balance", 0),
+    "current_value": user_data.get("balance", 0),
+    "total_profit": user_data.get("portfolio_growth", 0),
+    "roi": user_data.get("portfolio_growth", 0),
+    "total_value": user_data.get("balance", 0),
+    "gain_loss": user_data.get("portfolio_growth", 0),  # <-- Add this line
+    "distribution": [
+        {"label": "Stocks", "percent": 65, "color": "#6aa5ff"},
+        {"label": "ETFs",   "percent": 25, "color": "#6cd9a7"},
+        {"label": "Crypto", "percent": 10, "color": "#b28bff"},
+    ],
+    "bars": {"deposited": user_data.get("balance", 0), "current": user_data.get("balance", 0)},
+    "holdings": user_data.get("holdings", [])
+}
     return render_template("portfolio.html", data=data)
 
 @app.route("/transactions")
@@ -285,7 +306,17 @@ def admin_delete_user(email):
 def admin_edit_balance(email):
     new_balance = request.json.get("balance")
     db = firestore.client()
+    user_doc = db.collection('users').document(email).get()
+    old_balance = user_doc.to_dict().get("balance", 0) if user_doc.exists else 0
+
     db.collection('users').document(email).update({"balance": float(new_balance)})
+
+    change = float(new_balance) - old_balance
+    if change > 0:
+        add_transaction(email, "Deposit", change, "Completed")
+    elif change < 0:
+        add_transaction(email, "Withdrawal", abs(change), "Completed")
+
     return jsonify({"status": "success"})
 
 # Control deposit/withdrawal status (still uses SQLite)
@@ -329,15 +360,23 @@ def admin_users():
     print("Fetched users:", users)
     return render_template("admin_users.html", users=users)
 
-@app.route("/deposit")
+@app.route("/deposit", methods=["POST"])
 @login_required
 def deposit():
-    return render_template("deposit.html")
+    user_email = session["user"]["email"]
+    deposit_amount = float(request.form.get("amount"))
+    db = firestore.client()
+    db.collection('users').document(user_email).update({
+        "balance": firestore.Increment(deposit_amount)
+    })
+    add_transaction(user_email, "Deposit", deposit_amount, "Completed")
+    return redirect(url_for("dashboard"))
 
 @app.route("/withdraw")
 @login_required
 def withdraw():
     return render_template("withdraw.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

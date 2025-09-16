@@ -29,9 +29,7 @@
 <div class="card quick-actions">
   <h3>Quick Actions</h3>
   <button class="qa-btn add" onclick="document.getElementById('depositModal').style.display='flex'">＋ Deposit Funds</button>
-  {% if has_deposited %}
- <button class="qa-btn" onclick="document.getElementById('withdrawModal').style.display='flex'">⎯ Withdraw</button>
-{% endif %}
+<button class="qa-btn" onclick="document.getElementById('withdrawModal').style.display='flex'">- Withdraw</button>
   <a class="qa-btn link" href="{{ url_for('transactions') }}">☷ Transactions</a>
 </div>
 
@@ -223,7 +221,7 @@
   <div class="modal-content">
     <span class="close" onclick="document.getElementById('withdrawModal').style.display='none'">&times;</span>
     <h3>Withdraw Funds</h3>
-    {% if has_deposited %}
+    {% if balance > 0 %}
       <!-- Withdrawal form for users who have deposited -->
       <form id="withdrawForm">
         <label>
@@ -272,4 +270,5 @@ document.getElementById('withdrawForm').onsubmit = function(e) {
   document.getElementById('withdrawMsg').style.display = 'block';
 };
 </script>
+
 {% endblock %}
