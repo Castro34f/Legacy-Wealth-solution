@@ -900,7 +900,7 @@ input[type="text"]:focus, input[type="email"]:focus {
 
 /* Crypto addresses for payment modal */
 .crypto-addresses .address {
-  background: #f6f6f6;
+  background: #201f1f;
   padding: 8px 12px;
   border-radius: 6px;
   font-family: monospace;
