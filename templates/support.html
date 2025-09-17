@@ -18,11 +18,18 @@
       </div>
       <h2 style="font-size:1.3em;font-weight:600;margin-bottom:8px;">Live Chat</h2>
       <p style="margin-bottom:18px;">Get instant help from our support team</p>
-      <div style="color:#dbd8d1;font-size:0.95em;margin-bottom:18px;">
+      <div style="color:#302f2c;font-size:0.95em;margin-bottom:18px;">
         &#128337; Available 24/7
       </div>
-      <a href="#" style="display:block;background:#e6b800;color:#fff;font-weight:600;padding:12px 0;border-radius:8px;text-decoration:none;font-size:1em;">Start Chat</a>
+      <button id="startChatBtn" style="display:block;width:100%;background:#e6b800;color:#fff;font-weight:600;padding:12px 0;border-radius:8px;text-decoration:none;font-size:1em;cursor:pointer;">Start Chat</button>
     </div>
   </div>
 </div>
+<script>
+  document.getElementById('startChatBtn').onclick = function() {
+    if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
+      Tawk_API.maximize();
+    }
+  };
+</script>
 {% endblock %}

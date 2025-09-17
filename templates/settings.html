@@ -2,19 +2,23 @@
 {% block content %}
 <div class="auth">
   <h2 class="section-title">Settings & Profile</h2>
-  <div class="profile-card card shadow">
-    <div class="profile-header">
-      <div class="profile-avatar">JD</div>
-      <div>
-        <div class="profile-name">John Doe</div>
-        <div class="profile-email">john.doe@example.com</div>
-        </div>
-    </div>
-    <div class="profile-details">
-      <div><strong>Full Name</strong><br>John Doe</div>
-      <div><strong>Email Address</strong><br>john.doe@example.com</div>
+
+  <div class="profile-card">
+    <div class="profile-avatar">{{ user.name[:1]|upper }}{{ user.name.split(' ')[1][:1]|upper if user.name.split(' ')|length > 1 else '' }}</div>
+    <div>
+      <div class="profile-name">{{ user.name }}</div>
+      <div class="profile-email">{{ user.email }}</div>
     </div>
   </div>
+
+  <div class="profile-details">
+    <div><strong>Full Name</strong></div>
+    <div>{{ user.name }}</div>
+    <div><strong>Email Address</strong></div>
+    <div>{{ user.email }}</div>
+  </div>
+
+</div>
 
   <div class="card shadow" style="margin-top:32px;">
     <h3>Deposit Addresses</h3>

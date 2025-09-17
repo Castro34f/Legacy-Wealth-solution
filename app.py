@@ -241,7 +241,11 @@ def transactions():
 @app.route("/settings")
 @login_required
 def settings():
-    return render_template("settings.html")
+    user_email = session["user"]["email"]
+    db = firestore.client()
+    user_doc = db.collection('users').document(user_email).get()
+    user = user_doc.to_dict() if user_doc.exists else {}
+    return render_template("settings.html", user=user)
 
 @app.route("/support")
 def support():
