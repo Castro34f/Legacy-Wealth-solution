@@ -5,8 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # Firebase Admin SDK
 import firebase_admin
-from firebase_admin import credentials, auth as firebase_auth, firestore
-import os
+from firebase_admin import credentials, firestore
 import json
 
 # ---------- Secure Firebase Init ----------
@@ -24,6 +23,7 @@ if not firebase_admin._apps:
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 DB_PATH = os.path.join(os.path.dirname(__file__), "moonvest.db")
+
 # ---------- Transactions DB (SQLite) ----------
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -79,29 +79,6 @@ def admin_required(f):
             return redirect(url_for("admin_login"))
         return f(*args, **kwargs)
     return wrapped
-
-# ---------- Firebase Session Login ----------
-@app.route("/sessionLogin", methods=["POST"])
-def session_login():
-    id_token = request.json.get("idToken")
-    try:
-        decoded_token = firebase_auth.verify_id_token(id_token)
-        email = decoded_token["email"]
-        name = decoded_token.get("name", email.split("@")[0])
-
-        # Check Firestore for admin role
-        db = firestore.client()
-        user_doc = db.collection('users').document(email).get()
-        if user_doc.exists and user_doc.to_dict().get('role') == 'admin':
-            session["admin"] = True
-            session["user"] = {"email": email, "name": name}
-            return jsonify({"status": "success", "redirect": url_for("admin_users")})
-        else:
-            session["user"] = {"email": email, "name": name}
-            session.pop("admin", None)
-            return jsonify({"status": "success", "redirect": url_for("dashboard")})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 401
 
 # ---------- Public ----------
 @app.route("/")
@@ -231,7 +208,6 @@ def dashboard():
     print("Rendering dashboard")       # Step 5
     return render_template("dashboard.html", kpis=kpis, tickers=tickers, activity=activity, has_deposited=has_deposited, balance=balance)
 
-
 @app.route("/portfolio")
 @login_required
 def portfolio():
@@ -241,20 +217,20 @@ def portfolio():
     user_data = user_doc.to_dict() if user_doc.exists else {}
 
     data = {
-    "total_deposited": user_data.get("balance", 0),
-    "current_value": user_data.get("balance", 0),
-    "total_profit": user_data.get("portfolio_growth", 0),
-    "roi": user_data.get("portfolio_growth", 0),
-    "total_value": user_data.get("balance", 0),
-    "gain_loss": user_data.get("portfolio_growth", 0),  # <-- Add this line
-    "distribution": [
-        {"label": "Stocks", "percent": 65, "color": "#6aa5ff"},
-        {"label": "ETFs",   "percent": 25, "color": "#6cd9a7"},
-        {"label": "Crypto", "percent": 10, "color": "#b28bff"},
-    ],
-    "bars": {"deposited": user_data.get("balance", 0), "current": user_data.get("balance", 0)},
-    "holdings": user_data.get("holdings", [])
-}
+        "total_deposited": user_data.get("balance", 0),
+        "current_value": user_data.get("balance", 0),
+        "total_profit": user_data.get("portfolio_growth", 0),
+        "roi": user_data.get("portfolio_growth", 0),
+        "total_value": user_data.get("balance", 0),
+        "gain_loss": user_data.get("portfolio_growth", 0),
+        "distribution": [
+            {"label": "Stocks", "percent": 65, "color": "#6aa5ff"},
+            {"label": "ETFs",   "percent": 25, "color": "#6cd9a7"},
+            {"label": "Crypto", "percent": 10, "color": "#b28bff"},
+        ],
+        "bars": {"deposited": user_data.get("balance", 0), "current": user_data.get("balance", 0)},
+        "holdings": user_data.get("holdings", [])
+    }
     return render_template("portfolio.html", data=data)
 
 @app.route("/transactions")
@@ -292,18 +268,12 @@ def admin_login():
             return render_template("admin_login.html", error="Invalid admin credentials.")
     return render_template("admin_login.html")
 
-# Delete user (from Firestore and Firebase Auth)
+# Delete user (from Firestore only)
 @app.route("/admin/delete_user/<email>", methods=["POST"])
 @admin_required
 def admin_delete_user(email):
     db = firestore.client()
     db.collection('users').document(email).delete()
-    # Optionally delete from Firebase Auth as well
-    try:
-        user = firebase_auth.get_user_by_email(email)
-        firebase_auth.delete_user(user.uid)
-    except Exception:
-        pass
     return jsonify({"status": "success"})
 
 # Edit/Add money to user dashboard

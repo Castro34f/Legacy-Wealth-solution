@@ -795,7 +795,7 @@ input[type="text"]:focus, input[type="email"]:focus {
   gap: 24px;
 }
 .crypto-addresses .address {
-  background: #f6f6f6;
+  background: #222020;
   padding: 8px 12px;
   border-radius: 6px;
   font-family: monospace;
